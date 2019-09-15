@@ -1,3 +1,5 @@
+package se.plweb;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -135,12 +137,12 @@ public class FilesInDirectoryChecker {
     }
 
     /**
-     * @param args
-     * @throws MojoFailureException args[0] file suffix to check
-     *                              args[1] path to directory to check
-     *                              args[2] path to file with content compare with directory
-     *                              args[3] path to file where to write current files in
-     *                              args[4] generate content to compare in file referenced in arguments[2]
+     * @param args args[0] file suffix to check
+     *             args[1] path to directory to check
+     *             args[2] path to file with content compare with directory
+     *             args[3] path to file where to write current files in
+     *             args[4] generate content to compare in file referenced in arguments[2]
+     * @throws MojoFailureException
      */
 
     public static void main(String[] args) throws MojoFailureException {
