@@ -1,19 +1,23 @@
 package se.plweb;
 
-public class ArgumentValue {
-    private Argument argument;
-    private String value;
+class ArgumentValue {
+    private final Argument argument;
+    private final String value;
 
-    public ArgumentValue(Argument argument, String value) {
+    private ArgumentValue(Argument argument, String value) {
         this.argument = argument;
         this.value = value;
     }
 
-    public Argument getArgument() {
+    static ArgumentValue create(Argument argument, String value) {
+        return new ArgumentValue(argument, value);
+    }
+
+    Argument getArgument() {
         return argument;
     }
 
-    public String getValue() {
+    String getValue() {
         return value;
     }
 }
