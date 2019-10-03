@@ -1,16 +1,19 @@
 package se.plweb;
 
+import java.util.ArrayList;
+import java.util.List;
+
 class ArgumentValue {
     private final Argument argument;
-    private final String value;
+    private final List<String> values = new ArrayList<>();
 
-    private ArgumentValue(Argument argument, String value) {
+    private ArgumentValue(Argument argument, List<String> values) {
         this.argument = argument;
-        this.value = value;
+        this.values.addAll(values);
     }
 
-    static ArgumentValue create(Argument argument, String value) {
-        return new ArgumentValue(argument, value);
+    static ArgumentValue create(Argument argument, List<String> values) {
+        return new ArgumentValue(argument, values);
     }
 
     Argument getArgument() {
@@ -18,6 +21,13 @@ class ArgumentValue {
     }
 
     String getValue() {
-        return value;
+        return values
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    List<String> getValues() {
+        return values;
     }
 }

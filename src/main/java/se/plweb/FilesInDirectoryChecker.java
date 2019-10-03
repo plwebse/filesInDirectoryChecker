@@ -27,14 +27,14 @@ class FilesInDirectoryChecker {
     private File compareWithFile;
     private File onErrorWriteOutPutToFile;
     private boolean generateCompareFile;
-    private String fileSuffix;
+    private List<String> fileSuffix = Collections.emptyList();
 
     private FilesInDirectoryChecker(Set<ArgumentValue> argumentValues) {
         this();
         for (ArgumentValue argumentValue : argumentValues) {
             switch (argumentValue.getArgument()) {
                 case FILE_SUFFIX:
-                    this.fileSuffix = argumentValue.getValue();
+                    this.fileSuffix = argumentValue.getValues();
                     break;
                 case ON_ERROR_CREATE_FILE:
                     this.onErrorWriteOutPutToFile =
@@ -77,6 +77,17 @@ class FilesInDirectoryChecker {
         new FilesInDirectoryChecker(argumentValueMap).execute();
     }
 
+    private static FilenameFilter filenameFilter(List<String> fileSuffix) {
+
+        return (dir, name) -> {
+            if (fileSuffix.isEmpty()) {
+                return true;
+            } else {
+                return fileSuffix.stream().anyMatch(name::endsWith);
+            }
+        };
+    }
+
     private void execute() throws MojoFailureException, IOException {
 
         checkPreconditions();
@@ -89,8 +100,8 @@ class FilesInDirectoryChecker {
 
     private void checkFilesInDirectory() throws MojoFailureException, IOException {
 
-        log.info(String.format("Looking for *%s in %s and compering them to %s",
-                Optional.ofNullable(fileSuffix).orElse(""),
+        log.info(String.format("Looking for %s in %s and compering them to %s",
+                Optional.ofNullable(fileSuffix).orElse(Collections.singletonList("")),
                 checkInFolder.getAbsolutePath(),
                 compareWithFile.getAbsolutePath()));
 
@@ -177,13 +188,7 @@ class FilesInDirectoryChecker {
     }
 
     private List<String> getListOfFileNamesInCheckInFolder() {
-
-        FilenameFilter fileNameFilter = (dir, name) -> Optional
-                .ofNullable(fileSuffix)
-                .map(name::endsWith)
-                .orElse(true);
-
-        return Stream.of(Objects.requireNonNull(checkInFolder.listFiles(fileNameFilter))).
+        return Stream.of(Objects.requireNonNull(checkInFolder.listFiles(filenameFilter(fileSuffix)))).
                 map(File::getName)
                 .collect(Collectors.toList());
     }

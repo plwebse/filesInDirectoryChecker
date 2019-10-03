@@ -1,13 +1,13 @@
 package se.plweb;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class ArgumentValueParser {
 
     private static final String EQUALS_SIGN = "=";
+    private static final String COMMA = ",";
     private static final int NAME_AND_VALUE_LENGTH = 2;
     private final Set<ArgumentValue> argumentValueSet;
 
@@ -19,15 +19,29 @@ class ArgumentValueParser {
                 .collect(Collectors.toSet());
     }
 
-    private static Optional<ArgumentValue> findFirstArgumentByNameAndCreateArgumentValue(String name, String value) {
-        return findFirstArgumentByName(name).map(argument -> ArgumentValue.create(argument, value));
-    }
-
     private static Optional<ArgumentValue> argumentValueParser(String arg) {
         return Optional.ofNullable(arg)
                 .map(ArgumentValueParser::splitToArgumentAndValueArray)
-                .filter(ArgumentValueParser::hasNameAndValue).flatMap(argumentAndValue -> findFirstArgumentByNameAndCreateArgumentValue(argumentAndValue[0],
-                        argumentAndValue[1]));
+                .filter(ArgumentValueParser::hasNameAndValue)
+                .flatMap(argumentAndValue ->
+                        findFirstArgumentByNameAndCreateArgumentValue(
+                                argumentAndValue[0],
+                                argumentAndValue[1]
+                        )
+                );
+    }
+
+    private static String[] splitToArgumentAndValueArray(String argument) {
+        return nullSafeSplit(argument, EQUALS_SIGN);
+    }
+
+    private static boolean hasNameAndValue(String[] argumentAndValue) {
+        return argumentAndValue.length == NAME_AND_VALUE_LENGTH;
+    }
+
+    private static Optional<ArgumentValue> findFirstArgumentByNameAndCreateArgumentValue(String name, String value) {
+        return findFirstArgumentByName(name).map(argument -> ArgumentValue.create(argument,
+                parseValues(value)));
     }
 
     private static Optional<Argument> findFirstArgumentByName(String name) {
@@ -36,12 +50,30 @@ class ArgumentValueParser {
                 .findFirst();
     }
 
-    private static boolean hasNameAndValue(String[] argumentAndValue) {
-        return argumentAndValue.length == NAME_AND_VALUE_LENGTH;
+    private static List<String> parseValues(String value) {
+        return Stream.of(value)
+                .filter(Objects::nonNull)
+                .map(ArgumentValueParser::splitToValues)
+                .map(Arrays::asList)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
     }
 
-    private static String[] splitToArgumentAndValueArray(String argument1) {
-        return argument1.split(EQUALS_SIGN);
+    private static String[] splitToValues(String value) {
+        return nullSafeSplit(value, COMMA);
+    }
+
+    private static String[] nullSafeSplit(String value, String regex) {
+        if (regex == null) {
+            return defaultValueStringArray(value);
+        }
+        return Optional.ofNullable(value)
+                .map(v2 -> v2.split(regex))
+                .orElse(defaultValueStringArray(value));
+    }
+
+    private static String[] defaultValueStringArray(String value) {
+        return new String[]{Optional.ofNullable(value).orElse("")};
     }
 
     Set<Argument> getMissingRequiredArguments() {
