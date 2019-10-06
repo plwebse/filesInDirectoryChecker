@@ -78,7 +78,6 @@ class FilesInDirectoryChecker {
     }
 
     private static FilenameFilter filenameFilter(List<String> fileSuffix) {
-
         return (dir, name) -> {
             if (fileSuffix.isEmpty()) {
                 return true;
@@ -90,11 +89,11 @@ class FilesInDirectoryChecker {
 
     private void execute() throws MojoFailureException, IOException {
 
-        checkPreconditions();
-        if (generateCompareFile) {
-            createOrUpdateFileWithContent(compareWithFile, getFileListAsText());
-        } else {
+        checkPreconditions(generateCompareFile);
+        if (!generateCompareFile) {
             checkFilesInDirectory();
+        } else {
+            createOrUpdateFileWithContent(compareWithFile, getFileListAsText());
         }
     }
 
@@ -205,10 +204,11 @@ class FilesInDirectoryChecker {
                 .collect(Collectors.joining());
     }
 
-    private void checkPreconditions() {
-        if (!checkInFolder.isDirectory()) {
-            throw new RuntimeException(MISSING_INPUT_ERROR);
+    private void checkPreconditions(boolean shouldGenerateCompareFile) {
+        if (checkInFolder.isDirectory() || (!shouldGenerateCompareFile && compareWithFile.isFile())) {
+            return;
         }
+        throw new RuntimeException(MISSING_INPUT_ERROR);
     }
 
     String diffLocationMessage(String nameOfLocation) {

@@ -27,8 +27,10 @@ public enum Argument {
                 .collect(Collectors.toSet()));
     }
 
-    public String getName() {
-        return name;
+    public static Optional<Argument> findByName(String otherName) {
+        return Arrays.stream(Argument.values())
+                .filter(argument -> argument.name.equals(otherName))
+                .findFirst();
     }
 
     public boolean isRequired() {

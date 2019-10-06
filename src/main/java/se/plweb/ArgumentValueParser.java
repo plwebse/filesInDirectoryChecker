@@ -25,55 +25,54 @@ class ArgumentValueParser {
                 .filter(ArgumentValueParser::hasNameAndValue)
                 .flatMap(argumentAndValue ->
                         findFirstArgumentByNameAndCreateArgumentValue(
-                                argumentAndValue[0],
-                                argumentAndValue[1]
+                                argumentAndValue.get(0),
+                                argumentAndValue.get(1)
                         )
                 );
     }
 
-    private static String[] splitToArgumentAndValueArray(String argument) {
+    private static List<String> splitToArgumentAndValueArray(String argument) {
         return nullSafeSplit(argument, EQUALS_SIGN);
     }
 
-    private static boolean hasNameAndValue(String[] argumentAndValue) {
-        return argumentAndValue.length == NAME_AND_VALUE_LENGTH;
+    private static boolean hasNameAndValue(List<String> argumentAndValue) {
+        return Optional.ofNullable(argumentAndValue)
+                .map(av -> av.size() == NAME_AND_VALUE_LENGTH)
+                .orElse(false);
     }
 
-    private static Optional<ArgumentValue> findFirstArgumentByNameAndCreateArgumentValue(String name, String value) {
-        return findFirstArgumentByName(name).map(argument -> ArgumentValue.create(argument,
-                parseValues(value)));
+    private static Optional<ArgumentValue> findFirstArgumentByNameAndCreateArgumentValue(String name, String unParsedValues) {
+        return Argument.findByName(name)
+                .map(argument -> ArgumentValue.create(argument, parseValues(unParsedValues)));
     }
 
-    private static Optional<Argument> findFirstArgumentByName(String name) {
-        return Arrays.stream(Argument.values())
-                .filter(a -> a.getName().equals(name))
-                .findFirst();
-    }
-
-    private static List<String> parseValues(String value) {
-        return Stream.of(value)
+    private static List<String> parseValues(String unParsedValues) {
+        return Stream.of(unParsedValues)
                 .filter(Objects::nonNull)
                 .map(ArgumentValueParser::splitToValues)
-                .map(Arrays::asList)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 
-    private static String[] splitToValues(String value) {
+    private static List<String> splitToValues(String value) {
         return nullSafeSplit(value, COMMA);
     }
 
-    private static String[] nullSafeSplit(String value, String regex) {
-        if (regex == null) {
-            return defaultValueStringArray(value);
-        }
-        return Optional.ofNullable(value)
+    private static List<String> nullSafeSplit(String value, String regex) {
+        return Arrays.asList(Optional.ofNullable(value)
+                .filter(v1 -> isNotBlank(v1, regex))
                 .map(v2 -> v2.split(regex))
-                .orElse(defaultValueStringArray(value));
+                .orElse(stringArray(value)));
     }
 
-    private static String[] defaultValueStringArray(String value) {
-        return new String[]{Optional.ofNullable(value).orElse("")};
+    private static String[] stringArray(String defaultValue) {
+        return new String[]{Optional.ofNullable(defaultValue).orElse("")};
+    }
+
+    private static boolean isNotBlank(String... strings) {
+        return Optional.ofNullable(strings)
+                .map(s1 -> Arrays.stream(s1).allMatch(s -> Objects.nonNull(s) && s.trim().length() > 0))
+                .orElse(false);
     }
 
     Set<Argument> getMissingRequiredArguments() {
