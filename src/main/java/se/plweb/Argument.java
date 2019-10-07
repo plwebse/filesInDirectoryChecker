@@ -16,7 +16,7 @@ public enum Argument {
     private final boolean required;
 
     Argument(String name, boolean required) {
-        this.name = Optional.ofNullable(name).orElse("");
+        this.name = name;
         this.required = required;
     }
 
