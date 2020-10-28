@@ -20,14 +20,14 @@ class ArgumentValue {
         return argument;
     }
 
-    String getValue() {
+    String getFirstValue() {
         return values
                 .stream()
                 .findFirst()
                 .orElse(null);
     }
 
-    List<String> getValues() {
+    List<String> getAllValues() {
         return values;
     }
 }

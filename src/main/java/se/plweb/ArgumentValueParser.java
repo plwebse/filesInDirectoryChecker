@@ -8,36 +8,30 @@ class ArgumentValueParser {
 
     private static final String EQUALS_SIGN = "=";
     private static final String COMMA = ",";
-    private static final int NAME_AND_VALUE_LENGTH = 2;
+    private static final Integer NAME_AND_VALUE_LENGTH = 2;
     private final Set<ArgumentValue> argumentValueSet;
 
     ArgumentValueParser(String[] args) {
         argumentValueSet = Arrays.stream(args)
                 .map(ArgumentValueParser::argumentValueParser)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toSet());
+                .filter(Optional::isPresent).map(Optional::get).collect(Collectors.toSet());
     }
 
     private static Optional<ArgumentValue> argumentValueParser(String arg) {
         return Optional.ofNullable(arg)
-                .map(ArgumentValueParser::splitToArgumentAndValueArray)
+                .map(ArgumentValueParser::splitToArgumentAndValueList)
                 .filter(ArgumentValueParser::hasNameAndValue)
                 .flatMap(argumentAndValue ->
-                        findFirstArgumentByNameAndCreateArgumentValue(
-                                argumentAndValue.get(0),
-                                argumentAndValue.get(1)
-                        )
-                );
+                        findFirstArgumentByNameAndCreateArgumentValue(argumentAndValue.get(0), argumentAndValue.get(1)));
     }
 
-    private static List<String> splitToArgumentAndValueArray(String argument) {
+    private static List<String> splitToArgumentAndValueList(String argument) {
         return nullSafeSplit(argument, EQUALS_SIGN);
     }
 
     private static boolean hasNameAndValue(List<String> argumentAndValue) {
         return Optional.ofNullable(argumentAndValue)
-                .map(av -> av.size() == NAME_AND_VALUE_LENGTH)
+                .map(ArgumentValueParser::hasNameAndValueSize)
                 .orElse(false);
     }
 
@@ -49,12 +43,12 @@ class ArgumentValueParser {
     private static List<String> parseValues(String unParsedValues) {
         return Stream.of(unParsedValues)
                 .filter(Objects::nonNull)
-                .map(ArgumentValueParser::splitToValues)
+                .map(ArgumentValueParser::splitToListOfValues)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
     }
 
-    private static List<String> splitToValues(String value) {
+    private static List<String> splitToListOfValues(String value) {
         return nullSafeSplit(value, COMMA);
     }
 
@@ -71,16 +65,29 @@ class ArgumentValueParser {
 
     private static boolean isNotBlank(String... strings) {
         return Optional.ofNullable(strings)
-                .map(s1 -> Arrays.stream(s1).allMatch(s -> Objects.nonNull(s) && s.trim().length() > 0))
+                .map(ArgumentValueParser::isNotBlanks)
                 .orElse(false);
     }
 
+    private static Boolean isNotBlanks(String[] s1) {
+        return Arrays.stream(s1).allMatch(ArgumentValueParser::isNotBlank);
+    }
+
+    private static boolean isNotBlank(String s) {
+        return Optional.ofNullable(s)
+                .map(s1 -> !s1.trim().isEmpty())
+                .orElse(false);
+    }
+
+    private static boolean hasNameAndValueSize(List<String> strings) {
+        return NAME_AND_VALUE_LENGTH.equals(strings.size());
+    }
+
     Set<Argument> getMissingRequiredArguments() {
-        Set<Argument> parsedArguments =
-                argumentValueSet.stream()
-                        .map(ArgumentValue::getArgument)
-                        .filter(Argument::isRequired)
-                        .collect(Collectors.toSet());
+        Set<Argument> parsedArguments = argumentValueSet.stream()
+                .map(ArgumentValue::getArgument)
+                .filter(Argument::isRequired)
+                .collect(Collectors.toSet());
         return Argument.getRequiredArguments().stream()
                 .filter(argument -> !parsedArguments.contains(argument))
                 .collect(Collectors.toSet());

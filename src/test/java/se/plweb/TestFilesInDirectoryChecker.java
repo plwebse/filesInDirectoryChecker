@@ -4,13 +4,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 public class TestFilesInDirectoryChecker {
 
-    private ArrayList<String> listA;
-    private ArrayList<String> listB;
+    private List<String> listA;
+    private List<String> listB;
     private FilesInDirectoryChecker checker;
 
     @Before
@@ -21,37 +23,41 @@ public class TestFilesInDirectoryChecker {
     }
 
     @Test
-    public void test1() {
-        listA.add("a");
-        listA.add("b");
-        listA.add("c");
+    public void testDiffLeft() {
+        // given
+        listA = Arrays.asList("a", "b", "c");
+        listB = Arrays.asList("a", "b");
 
-        listB.add("a");
-        listB.add("b");
+        //when
+        String diff = checker.generateDiff(listA, listB, "a", "b");
 
-        assertEquals(checker.diffLocationMessage("a") + "c\n", checker.generateDiff(listA, listB, "a", "b"));
+        //then
+        assertEquals(checker.diffLocationMessage("a") + "c\n", diff);
     }
 
     @Test
-    public void test2() {
-        listA.add("a");
-        listA.add("b");
+    public void testDiffRight() {
+        //given
+        listA = Arrays.asList("a", "b");
+        listB = Arrays.asList("a", "b", "c");
 
-        listB.add("a");
-        listB.add("b");
-        listB.add("c");
+        //when
+        String diff = checker.generateDiff(listA, listB, "a", "b");
 
-        assertEquals(checker.diffLocationMessage("b") + "c\n", checker.generateDiff(listA, listB, "a", "b"));
+        //then
+        assertEquals(checker.diffLocationMessage("b") + "c\n", diff);
     }
 
     @Test
-    public void test3() {
-        listA.add("a");
-        listA.add("b");
+    public void testNoDiff() {
+        //given
+        listA = Arrays.asList("a", "b");
+        listB = Arrays.asList("a", "b");
 
-        listB.add("a");
-        listB.add("b");
+        //when
+        String diff = checker.generateDiff(listA, listB, "a", "b");
 
-        assertEquals("", checker.generateDiff(listA, listB, "a", "b"));
+        //then
+        assertEquals("", diff);
     }
 }

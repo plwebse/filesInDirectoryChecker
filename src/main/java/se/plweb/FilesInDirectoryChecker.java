@@ -34,22 +34,22 @@ class FilesInDirectoryChecker {
         for (ArgumentValue argumentValue : argumentValues) {
             switch (argumentValue.getArgument()) {
                 case FILE_SUFFIX:
-                    this.fileSuffix = argumentValue.getValues();
+                    this.fileSuffix = argumentValue.getAllValues();
                     break;
                 case ON_ERROR_CREATE_FILE:
                     this.onErrorWriteOutPutToFile =
-                            new File(argumentValue.getValue());
+                            new File(argumentValue.getFirstValue());
                     break;
                 case CHECK_FOLDER_FOR_FILES:
-                    this.checkInFolder = new File(argumentValue.getValue());
+                    this.checkInFolder = new File(argumentValue.getFirstValue());
                     break;
                 case REQUIRED_FILES_FILE:
                     this.compareWithFile =
-                            new File(argumentValue.getValue());
+                            new File(argumentValue.getFirstValue());
                     break;
                 case GENERATE_REQUIRED_FILES_FILE:
                     this.generateCompareFile =
-                            Boolean.parseBoolean(argumentValue.getValue());
+                            Boolean.parseBoolean(argumentValue.getFirstValue());
                     break;
             }
         }
