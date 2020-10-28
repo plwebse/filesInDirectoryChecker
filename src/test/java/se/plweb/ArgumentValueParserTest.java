@@ -11,12 +11,28 @@ import static org.junit.Assert.assertEquals;
 public class ArgumentValueParserTest {
 
     @Test
-    public void basicTest() {
+    public void basicTestSuccess() {
 
         String[] args = new String[]{"required-files-file=test", "check-folder-for-files=1"};
 
         ArgumentValueParser argumentValueParser = new ArgumentValueParser(args);
         assertEquals(0, argumentValueParser.getMissingRequiredArguments().size());
+    }
+
+    @Test
+    public void basicArgumentFailTest() {
+
+        ArgumentValueParser nullArgumentValueParser = new ArgumentValueParser(null);
+        assertEquals(0, nullArgumentValueParser.getArgumentValueSet().size());
+
+        ArgumentValueParser nullStringArrayArgumentValueParser = new ArgumentValueParser(new String[]{null});
+        assertEquals(0, nullStringArrayArgumentValueParser.getArgumentValueSet().size());
+
+        ArgumentValueParser argumentOnlyArgumentValueParser = new ArgumentValueParser(new String[]{"argument"});
+        assertEquals(0, argumentOnlyArgumentValueParser.getArgumentValueSet().size());
+
+        ArgumentValueParser wrongArgumentNameArgumentValueParser = new ArgumentValueParser(new String[]{"null=null"});
+        assertEquals(0, wrongArgumentNameArgumentValueParser.getArgumentValueSet().size());
     }
 
     @Test
