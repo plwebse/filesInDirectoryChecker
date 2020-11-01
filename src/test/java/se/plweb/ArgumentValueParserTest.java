@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ArgumentValueParserTest {
 
@@ -24,6 +25,7 @@ public class ArgumentValueParserTest {
 
         ArgumentValueParser nullArgumentValueParser = new ArgumentValueParser(null);
         assertEquals(0, nullArgumentValueParser.getArgumentValueSet().size());
+        assertTrue(nullArgumentValueParser.isThereMissingRequiredArguments());
 
         ArgumentValueParser nullStringArrayArgumentValueParser = new ArgumentValueParser(new String[]{null});
         assertEquals(0, nullStringArrayArgumentValueParser.getArgumentValueSet().size());

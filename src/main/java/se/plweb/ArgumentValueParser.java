@@ -2,12 +2,14 @@ package se.plweb;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 class ArgumentValueParser {
 
     private static final String ARGUMENT_AND_VALUE_SEPARATOR = "=";
     private static final String VALUE_SEPARATOR = ",";
     private static final int NAME_AND_VALUE_LENGTH = 2;
+    private static final int NO_LIMIT = 0;
     private final Set<ArgumentValue> argumentValueSet;
 
     ArgumentValueParser(String[] unParsedInputArguments) {
@@ -19,8 +21,7 @@ class ArgumentValueParser {
     private static Set<ArgumentValue> parseArgumentValues(String[] unParsedInputArguments) {
         return Arrays.stream(unParsedInputArguments)
                 .map(ArgumentValueParser::argumentValueParser)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(argumentValue -> argumentValue.map(Stream::of).orElseGet(Stream::empty))
                 .collect(Collectors.toSet());
     }
 
@@ -28,12 +29,11 @@ class ArgumentValueParser {
         return Optional.ofNullable(unParsedInputArgument)
                 .map(ArgumentValueParser::splitToArgumentAndValueList)
                 .filter(ArgumentValueParser::hasNameAndValue)
-                .flatMap(argumentAndValue ->
-                        findFirstArgumentByNameAndCreateArgumentValue(argumentAndValue.get(0), argumentAndValue.get(1)));
+                .flatMap(aav -> findFirstArgumentByNameAndCreateArgumentValue(aav.get(0), aav.get(1)));
     }
 
     private static List<String> splitToArgumentAndValueList(String argument) {
-        return nullSafeSplit(argument, ARGUMENT_AND_VALUE_SEPARATOR);
+        return nullSafeSplit(argument, ARGUMENT_AND_VALUE_SEPARATOR, NAME_AND_VALUE_LENGTH);
     }
 
     private static boolean hasNameAndValue(List<String> argumentAndValue) {
@@ -52,18 +52,14 @@ class ArgumentValueParser {
     }
 
     private static List<String> parseValues(String unParsedValues) {
-        return nullSafeSplit(unParsedValues, VALUE_SEPARATOR);
+        return nullSafeSplit(unParsedValues, VALUE_SEPARATOR, NO_LIMIT);
     }
 
-    private static List<String> nullSafeSplit(String value, String regex) {
-        return Arrays.asList(Optional.ofNullable(value)
+    private static List<String> nullSafeSplit(String value, String regex, int limit) {
+        return Optional.ofNullable(value)
                 .filter(ArgumentValueParser::isNotBlank)
-                .map(v2 -> v2.split(regex))
-                .orElse(stringArray(value)));
-    }
-
-    private static String[] stringArray(String defaultValue) {
-        return new String[]{Optional.ofNullable(defaultValue).orElse("")};
+                .map(v1 -> Arrays.asList(v1.split(regex, limit)))
+                .orElseGet(() -> Collections.singletonList(value));
     }
 
     private static boolean isNotBlank(String s) {
@@ -72,7 +68,7 @@ class ArgumentValueParser {
                 .orElse(false);
     }
 
-    Set<Argument> getMissingRequiredArguments() {
+    protected Set<Argument> getMissingRequiredArguments() {
         Set<Argument> parsedArguments = argumentValueSet.stream()
                 .map(ArgumentValue::getArgument)
                 .filter(Argument::isRequired)
@@ -82,11 +78,11 @@ class ArgumentValueParser {
                 .collect(Collectors.toSet());
     }
 
-    boolean isThereMissingRequiredArguments() {
+    protected boolean isThereMissingRequiredArguments() {
         return !getMissingRequiredArguments().isEmpty();
     }
 
-    Set<ArgumentValue> getArgumentValueSet() {
+    protected Set<ArgumentValue> getArgumentValueSet() {
         return argumentValueSet;
     }
 }

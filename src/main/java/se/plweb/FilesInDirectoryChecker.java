@@ -141,11 +141,12 @@ class FilesInDirectoryChecker {
     }
 
     private void createOrUpdateFileWithContent(File file, String content) throws IOException {
-        if (Optional.ofNullable(file).isPresent()) {
-            Path path = file.toPath();
-            if (content != null && Files.isWritable(path)) {
-                write(path, content.getBytes(UTF_8), CREATE, WRITE);
-            }
+        Optional<Path> optionalWritablePath = Optional.ofNullable(file)
+                .map(File::toPath)
+                .filter(Files::isWritable);
+
+        if (optionalWritablePath.isPresent()) {
+            write(optionalWritablePath.get(), content.getBytes(UTF_8), CREATE, WRITE);
         }
     }
 
@@ -211,7 +212,7 @@ class FilesInDirectoryChecker {
         throw new RuntimeException(MISSING_INPUT_ERROR);
     }
 
-    String diffLocationMessage(String nameOfLocation) {
+    protected String diffLocationMessage(String nameOfLocation) {
         return String.format("%s contains:\n", nameOfLocation);
     }
 }
