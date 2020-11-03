@@ -60,4 +60,17 @@ public class TestFilesInDirectoryChecker {
         //then
         assertEquals("", diff);
     }
+
+    @Test
+    public void testDiffRight2() {
+        //given
+        listA = Arrays.asList("a", "b");
+        listB = Arrays.asList("a", "b", "c", "d");
+
+        //when
+        String diff = checker.generateDiff(listA, listB, "a", "b");
+
+        //then
+        assertEquals(checker.diffLocationMessage("b") + "c\nd\n", diff);
+    }
 }

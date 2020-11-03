@@ -72,8 +72,7 @@ class FilesInDirectoryChecker {
         }
     }
 
-    private static void createAndExecute(Set<ArgumentValue> argumentValueMap) throws IOException,
-            MojoFailureException {
+    private static void createAndExecute(Set<ArgumentValue> argumentValueMap) throws IOException, MojoFailureException {
         new FilesInDirectoryChecker(argumentValueMap).execute();
     }
 
@@ -105,8 +104,8 @@ class FilesInDirectoryChecker {
                 compareWithFile.getAbsolutePath()));
 
         if (!getFileListAsText().equals(getCompareFileContents())) {
-            createOrUpdateFileWithContent(onErrorWriteOutPutToFile,
-                    getFileListAsText()); // generate a file to compare with
+            // generate a file to compare with
+            createOrUpdateFileWithContent(onErrorWriteOutPutToFile, getFileListAsText());
             buildAndThrowMojoFailureException();
         } else {
             log.info("OK");
@@ -121,7 +120,7 @@ class FilesInDirectoryChecker {
                 getListOfFileNamesInCheckInFolder(),
                 compareWithFile.getAbsolutePath(),
                 checkInFolder.getAbsolutePath()));
-        if (Optional.ofNullable(onErrorWriteOutPutToFile).isPresent()) {
+        if (Objects.nonNull(onErrorWriteOutPutToFile)) {
             sb.append("Compare: ");
             sb.append(compareWithFile.getAbsolutePath());
             sb.append(" with ");
@@ -188,8 +187,8 @@ class FilesInDirectoryChecker {
     }
 
     private List<String> getListOfFileNamesInCheckInFolder() {
-        return Stream.of(Objects.requireNonNull(checkInFolder.listFiles(filenameFilter(fileSuffix)))).
-                map(File::getName)
+        return Stream.of(checkInFolder.listFiles(filenameFilter(fileSuffix)))
+                .map(File::getName)
                 .collect(Collectors.toList());
     }
 
@@ -200,16 +199,15 @@ class FilesInDirectoryChecker {
     private String convertListOfStringsToString(List<String> listOfString) {
         return Optional.ofNullable(listOfString)
                 .orElse(Collections.emptyList())
-                .stream().map(line -> String.format("%s\n", line))
+                .stream()
                 .sorted(String::compareToIgnoreCase)
-                .collect(Collectors.joining());
+                .collect(Collectors.joining("\n", "" ,"\n"));
     }
 
     private void checkPreconditions(boolean shouldGenerateCompareFile) {
-        if (checkInFolder.isDirectory() || (!shouldGenerateCompareFile && compareWithFile.isFile())) {
-            return;
+        if ((!checkInFolder.isDirectory()) || (shouldGenerateCompareFile && !compareWithFile.isFile())) {
+            throw new RuntimeException(MISSING_INPUT_ERROR);
         }
-        throw new RuntimeException(MISSING_INPUT_ERROR);
     }
 
     protected String diffLocationMessage(String nameOfLocation) {
