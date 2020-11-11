@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllLines;
@@ -59,16 +58,16 @@ class FilesInDirectoryChecker {
     }
 
     public static void main(String[] args) throws MojoFailureException {
-        ArgumentValueParser argumentValueHelper = new ArgumentValueParser(args);
+        ArgumentValueParser argumentValueHelper = ArgumentValueParser.create(args);
 
         if (argumentValueHelper.isThereMissingRequiredArguments()) {
-            throw new MojoFailureException(MISSING_INPUT_ERROR + ":" + argumentValueHelper.getMissingRequiredArguments().toString());
+            buildAndThrowMojoFailureException(MISSING_INPUT_ERROR + ":" + argumentValueHelper.getMissingRequiredArguments().toString());
         }
 
         try {
             FilesInDirectoryChecker.createAndExecute(argumentValueHelper.getArgumentValueSet());
         } catch (IOException e) {
-            throw new MojoFailureException(e.getMessage(), e);
+            buildAndThrowMojoFailureException(e.getMessage(), e);
         }
     }
 
@@ -84,6 +83,14 @@ class FilesInDirectoryChecker {
                 return fileSuffix.stream().anyMatch(name::endsWith);
             }
         };
+    }
+
+    private static void buildAndThrowMojoFailureException(String message) throws MojoFailureException {
+        buildAndThrowMojoFailureException(message, null);
+    }
+
+    private static void buildAndThrowMojoFailureException(String message, Throwable throwable) throws MojoFailureException {
+        throw new MojoFailureException(message, throwable);
     }
 
     private void execute() throws MojoFailureException, IOException {
@@ -112,23 +119,25 @@ class FilesInDirectoryChecker {
         }
     }
 
-    private void buildAndThrowMojoFailureException() throws MojoFailureException, IOException {
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("The list of files is not equal!!!!\n");
-        sb.append(generateDiff(getListOfComparedFileLines(),
-                getListOfFileNamesInCheckInFolder(),
-                compareWithFile.getAbsolutePath(),
-                checkInFolder.getAbsolutePath()));
-        if (Objects.nonNull(onErrorWriteOutPutToFile)) {
-            sb.append("Compare: ");
-            sb.append(compareWithFile.getAbsolutePath());
-            sb.append(" with ");
-            sb.append(onErrorWriteOutPutToFile.getAbsolutePath());
-            sb.append("\n");
+    private void buildAndThrowMojoFailureException() throws MojoFailureException {
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("The list of files is not equal!!!!\n");
+            sb.append(generateDiff(getListOfComparedFileLines(),
+                    getListOfFileNamesInCheckInFolder(),
+                    compareWithFile.getAbsolutePath(),
+                    checkInFolder.getAbsolutePath()));
+            if (Objects.nonNull(onErrorWriteOutPutToFile)) {
+                sb.append("Compare: ");
+                sb.append(compareWithFile.getAbsolutePath());
+                sb.append(" with ");
+                sb.append(onErrorWriteOutPutToFile.getAbsolutePath());
+                sb.append("\n");
+            }
+            buildAndThrowMojoFailureException(sb.toString());
+        } catch (IOException e) {
+            buildAndThrowMojoFailureException(e.getMessage(), e);
         }
-
-        throw new MojoFailureException(sb.toString());
     }
 
     private String getFileListAsText() {
@@ -187,7 +196,10 @@ class FilesInDirectoryChecker {
     }
 
     private List<String> getListOfFileNamesInCheckInFolder() {
-        return Stream.of(checkInFolder.listFiles(filenameFilter(fileSuffix)))
+        return Optional.ofNullable(checkInFolder.listFiles(filenameFilter(fileSuffix)))
+                .map(Arrays::asList)
+                .orElseGet(Collections::emptyList)
+                .stream()
                 .map(File::getName)
                 .collect(Collectors.toList());
     }
@@ -201,7 +213,7 @@ class FilesInDirectoryChecker {
                 .orElse(Collections.emptyList())
                 .stream()
                 .sorted(String::compareToIgnoreCase)
-                .collect(Collectors.joining("\n", "" ,"\n"));
+                .collect(Collectors.joining("\n", "", "\n"));
     }
 
     private void checkPreconditions(boolean shouldGenerateCompareFile) {

@@ -16,24 +16,24 @@ public class ArgumentValueParserTest {
 
         String[] args = new String[]{"required-files-file=test", "check-folder-for-files=1"};
 
-        ArgumentValueParser argumentValueParser = new ArgumentValueParser(args);
+        ArgumentValueParser argumentValueParser = ArgumentValueParser.create(args);
         assertEquals(0, argumentValueParser.getMissingRequiredArguments().size());
     }
 
     @Test
     public void basicArgumentFailTest() {
 
-        ArgumentValueParser nullArgumentValueParser = new ArgumentValueParser(null);
+        ArgumentValueParser nullArgumentValueParser = ArgumentValueParser.create(null);
         assertEquals(0, nullArgumentValueParser.getArgumentValueSet().size());
         assertTrue(nullArgumentValueParser.isThereMissingRequiredArguments());
 
-        ArgumentValueParser nullStringArrayArgumentValueParser = new ArgumentValueParser(new String[]{null});
+        ArgumentValueParser nullStringArrayArgumentValueParser = ArgumentValueParser.create(new String[]{null});
         assertEquals(0, nullStringArrayArgumentValueParser.getArgumentValueSet().size());
 
-        ArgumentValueParser argumentOnlyArgumentValueParser = new ArgumentValueParser(new String[]{"argument"});
+        ArgumentValueParser argumentOnlyArgumentValueParser = ArgumentValueParser.create(new String[]{"argument"});
         assertEquals(0, argumentOnlyArgumentValueParser.getArgumentValueSet().size());
 
-        ArgumentValueParser wrongArgumentNameArgumentValueParser = new ArgumentValueParser(new String[]{"null=null"});
+        ArgumentValueParser wrongArgumentNameArgumentValueParser = ArgumentValueParser.create(new String[]{"null=null"});
         assertEquals(0, wrongArgumentNameArgumentValueParser.getArgumentValueSet().size());
     }
 
@@ -42,7 +42,7 @@ public class ArgumentValueParserTest {
 
         String[] args = new String[]{"check-folder-for-files=1"};
 
-        ArgumentValueParser argumentValueParser = new ArgumentValueParser(args);
+        ArgumentValueParser argumentValueParser = ArgumentValueParser.create(args);
         assertEquals(1, argumentValueParser.getMissingRequiredArguments().size());
     }
 
@@ -51,8 +51,8 @@ public class ArgumentValueParserTest {
 
         String[] args = new String[]{"required-files-file=test", "check-folder-for-files=1", "suffix=.txt"};
 
-        ArgumentValueParser argumentValueParser = new ArgumentValueParser(args);
-        List<String> hmm = getValuesForArgument(argumentValueParser.getArgumentValueSet(), Argument.FILE_SUFFIX);
+        ArgumentValueParser argumentValueParser = ArgumentValueParser.create(args);
+        List<String> hmm = getValuesForArgument(argumentValueParser.getArgumentValueSet());
 
         assertEquals(1, hmm.size());
     }
@@ -62,15 +62,15 @@ public class ArgumentValueParserTest {
 
         String[] args = new String[]{"required-files-file=test", "check-folder-for-files=1", "suffix=.txt,.jar"};
 
-        ArgumentValueParser argumentValueParser = new ArgumentValueParser(args);
-        List<String> hmm = getValuesForArgument(argumentValueParser.getArgumentValueSet(), Argument.FILE_SUFFIX);
+        ArgumentValueParser argumentValueParser = ArgumentValueParser.create(args);
+        List<String> hmm = getValuesForArgument(argumentValueParser.getArgumentValueSet());
 
         assertEquals(2, hmm.size());
     }
 
-    private List<String> getValuesForArgument(Set<ArgumentValue> argumentValueSet, Argument argument) {
+    private List<String> getValuesForArgument(Set<ArgumentValue> argumentValueSet) {
         return argumentValueSet.stream()
-                .filter(argumentValue -> argumentValue.getArgument().equals(argument))
+                .filter(argumentValue -> argumentValue.getArgument().equals(Argument.FILE_SUFFIX))
                 .map(ArgumentValue::getAllValues)
                 .findFirst()
                 .orElse(Collections.emptyList());

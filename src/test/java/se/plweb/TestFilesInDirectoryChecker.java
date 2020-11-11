@@ -3,7 +3,6 @@ package se.plweb;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,8 +16,6 @@ public class TestFilesInDirectoryChecker {
 
     @Before
     public void setUp() {
-        listA = new ArrayList<>();
-        listB = new ArrayList<>();
         checker = new FilesInDirectoryChecker();
     }
 

@@ -12,10 +12,14 @@ class ArgumentValueParser {
     private static final int NO_LIMIT = 0;
     private final Set<ArgumentValue> argumentValueSet;
 
-    ArgumentValueParser(String[] unParsedInputArguments) {
+    private ArgumentValueParser(String[] unParsedInputArguments) {
         argumentValueSet = Optional.ofNullable(unParsedInputArguments)
                 .map(ArgumentValueParser::parseArgumentValues)
                 .orElse(Collections.emptySet());
+    }
+
+    static ArgumentValueParser create(String[] unParsedInputArguments) {
+        return new ArgumentValueParser(unParsedInputArguments);
     }
 
     private static Set<ArgumentValue> parseArgumentValues(String[] unParsedInputArguments) {
@@ -68,7 +72,7 @@ class ArgumentValueParser {
                 .orElse(false);
     }
 
-    protected Set<Argument> getMissingRequiredArguments() {
+    Set<Argument> getMissingRequiredArguments() {
         Set<Argument> parsedArguments = argumentValueSet.stream()
                 .map(ArgumentValue::getArgument)
                 .filter(Argument::isRequired)
